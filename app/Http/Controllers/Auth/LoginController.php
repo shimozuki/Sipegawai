@@ -47,9 +47,9 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user)
     {
         //
-        if ($user->hasRole('ADMIN')) {
+        if ($user->hasRole('admin')) {
             return redirect()->route('superAdmin.index');
-        } else if ($user->hasRole('HRD')) {
+        } else if ($user->hasRole('hrd')) {
             return redirect()->route('hrd.index');
         }
 
@@ -58,8 +58,7 @@ class LoginController extends Controller
 
     protected function sendFailedLoginResponse(Request $request)
     {
-        Alert::error('error', 'Ups!! Password / Username Kamu Salah!!');
+        Alert::error('error', 'Ups!! Password / Email Kamu Salah!!');
         return redirect('/login');
-}
-
+    }
 }

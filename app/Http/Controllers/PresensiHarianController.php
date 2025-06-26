@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use RealRashid\SweetAlert\Facades\Alert;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class PresensiHarianController extends Controller
 {
@@ -60,11 +61,13 @@ class PresensiHarianController extends Controller
      */
     public function create()
     {
-        //
-        $pegawai = Pegawai::pluck('nama', 'id');
-        return view('admin.presensi.create', [
-            'pegawai' => $pegawai
-        ]);
+        $user = auth()->user();
+        $pegawai = Pegawai::pluck('nama', 'id'); // Untuk admin
+
+        // Untuk user non-admin
+        $pegawaiLogin = Pegawai::where('id', $user->id)->first(); // atau pakai relasi
+
+        return view('admin.presensi.create', compact('pegawai', 'pegawaiLogin', 'user'));
     }
 
     /**
@@ -75,14 +78,25 @@ class PresensiHarianController extends Controller
      */
     public function store(Request $request)
     {
-        //
-
+        // Validasi awal
         $this->validate($request, [
             'id_pegawai' => 'required',
-            'tanggal' => 'required',
+            'tanggal' => 'required|date',
             'ket' => 'required',
         ]);
 
+        // Cek apakah sudah ada presensi di tanggal yang sama
+        $cek = Presensi_harian::where('id_pegawai', $request->id_pegawai)
+            ->where('tanggal', $request->tanggal)
+            ->first();
+
+        if ($cek) {
+            Alert::error('Sudah Absen', 'Presensi untuk tanggal ini sudah ada.');
+            return redirect()->back()
+                ->withInput();
+        }
+
+        // Simpan jika belum ada
         Presensi_harian::create([
             'id_pegawai' => $request->id_pegawai,
             'tanggal' => $request->tanggal,
@@ -92,9 +106,10 @@ class PresensiHarianController extends Controller
             'is_wfh' => $request->is_wfh,
         ]);
 
-        Alert::success('success', ' Berhasil Input Data !');
+        Alert::success('success', 'Berhasil Input Data!');
         return redirect('presensi');
     }
+
 
     /**
      * Display the specified resource.
@@ -197,5 +212,30 @@ class PresensiHarianController extends Controller
         $fileName = 'Presensi.xlsx';
 
         return response()->download($filePath, $fileName, $headers);
+    }
+
+    public function pulang($id)
+    {
+        $presensi = Presensi_harian::findOrFail($id);
+        $now = Carbon::now('Asia/Makassar'); // ganti sesuai timezone kamu
+
+        // Jika sudah absen pulang
+        if ($presensi->jam_plg) {
+            Alert::info('Info', 'Anda sudah absen pulang sebelumnya.');
+            return redirect()->back();
+        }
+
+        // Validasi: Belum waktunya pulang
+        if ($now->format('H:i') < '16:30') {
+            Alert::warning('Terlalu Cepat', 'Belum waktunya absen pulang.');
+            return redirect()->back();
+        }
+
+        // Simpan jam pulang
+        $presensi->jam_plg = $now->format('H:i');
+        $presensi->save();
+
+        Alert::success('Berhasil', 'Absen pulang berhasil dicatat.');
+        return redirect()->back();
     }
 }

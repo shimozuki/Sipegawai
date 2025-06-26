@@ -142,6 +142,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('/presensi', PresensiHarianController::class);
     Route::get('/presensi/destroy/{data}', [PresensiHarianController::class, 'destroy'])->name('presensi.destroy');
     Route::post('/presensi/import_excel', [PresensiHarianController::class, 'import'])->name('presensi.import');
+    Route::get('/presensi/pulang/{id}', [PresensiHarianController::class, 'pulang'])->name('presensi.pulang');
+
 
 
     //Cuti
