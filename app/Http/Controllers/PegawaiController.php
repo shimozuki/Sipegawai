@@ -78,95 +78,90 @@ class PegawaiController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $this->validate($request, [
+                'id_role' => 'required',
+                'nik' => 'required|unique:pegawai,nik',
+                'nama' => 'required',
+                'jk' => 'required',
+                'agama' => 'required',
+                'tempat_lahir' => 'required',
+                'tgl_lahir' => 'required',
+                'alamat_ktp' => 'required',
+                'alamat_dom' => 'required',
+                'status' => 'required',
+                'jml_anak' => 'required',
+                'no_hp' => 'required',
+                'email' => 'required|email|unique:pegawai,email',
+                'id_jabatan' => 'required',
+                'id_divisi' => 'required',
+                'tgl_masuk' => 'required',
+                'imgupload' => 'required|mimes:jpeg,png,jpg,gif,svg|file|max:5000'
+            ]);
 
-        $this->validate($request, [
-            'id_role' => 'required',
-            'nik' => 'required',
-            'nama' => 'required',
-            'jk' => 'required',
-            'agama' => 'required',
-            'tempat_lahir' => 'required',
-            'tgl_lahir' => 'required',
-            'alamat_ktp' => 'required',
-            'alamat_dom' => 'required',
-            'status' => 'required',
-            'jml_anak' => 'required',
-            'no_hp' => 'required',
-            'email' => 'required',
-            'id_jabatan' => 'required',
-            'id_divisi' => 'required',
-            'tgl_masuk' => 'required',
-            'imgupload' => 'required|mimes:jpeg,png,jpg,gif,svg|file|max:5000'
-        ]);
+            $extension = $request->file('imgupload')->extension();
+            $imgname = $request->nik . '_' . date('dmyHi') . '.' . $extension;
+            $path = Storage::putFileAs('public/images', $request->file('imgupload'), $imgname);
+            $id = IdGenerator::generate(['table' => 'pegawai', 'length' => 8, 'prefix' => date('ym')]);
+            $password = bcrypt("$request->nik");
 
-        $extension = $request->file('imgupload')->extension();
-        $imgname = $request->nik . '_' . date('dmyHi') . '.' . $extension;
-        $path = Storage::putFileAs('public/images', $request->file('imgupload'), $imgname);
-        $id = IdGenerator::generate(['table' => 'pegawai', 'length' => 8, 'prefix' => date('ym')]);
-        $password = bcrypt("$request->nik");
-        $riwayat_jabatan = Riwayat_jabatan::where('id_pegawai', $id)
-            ->where('id_jabatan', $request->id_jabatan)
-            ->count();
+            $riwayat_jabatan = Riwayat_jabatan::where('id_pegawai', $id)->where('id_jabatan', $request->id_jabatan)->count();
+            $riwayat_divisi = Riwayat_divisi::where('id_pegawai', $id)->where('id_divisi', $request->id_divisi)->count();
 
-        $riwayat_divisi = Riwayat_divisi::where('id_pegawai', $id)
-            ->where('id_divisi', $request->id_divisi)
-            ->count();
-        $user = Pegawai::create([
-            'id' => $id,
-            'id_role' => $request->id_role,
-            'nik' => $request->nik,
-            'nama' => $request->nama,
-            'jk' => $request->jk,
-            'agama' => $request->agama,
-            'tempat_lahir' => $request->tempat_lahir,
-            'tgl_lahir' => $request->tgl_lahir,
-            'alamat_ktp' => $request->alamat_ktp,
-            'alamat_dom' => $request->alamat_dom,
-            'status' => $request->status,
-            'jml_anak' => $request->jml_anak,
-            'no_hp' => $request->no_hp,
-            'email' => $request->email,
-            'password' => $password,
-            'tgl_masuk' => $request->tgl_masuk,
-            'id_atasan' => $request->id_atasan,
-            'id_jabatan' => $request->id_jabatan,
-            'id_divisi' => $request->id_divisi,
-            'path' => $imgname
-        ]);
-
-
-        if ($riwayat_jabatan == 0) {
-
-            Riwayat_jabatan::create([
-                'id_pegawai' => $id,
+            $user = Pegawai::create([
+                'id' => $id,
+                'id_role' => $request->id_role,
+                'nik' => $request->nik,
+                'nama' => $request->nama,
+                'jk' => $request->jk,
+                'agama' => $request->agama,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tgl_lahir' => $request->tgl_lahir,
+                'alamat_ktp' => $request->alamat_ktp,
+                'alamat_dom' => $request->alamat_dom,
+                'status' => $request->status,
+                'jml_anak' => $request->jml_anak,
+                'no_hp' => $request->no_hp,
+                'email' => $request->email,
+                'password' => $password,
+                'tgl_masuk' => $request->tgl_masuk,
+                'id_atasan' => $request->id_atasan,
                 'id_jabatan' => $request->id_jabatan,
-                'tgl_mulai' => $request->tgl_masuk,
-            ]);
-        }
-        if ($riwayat_divisi == 0) {
-            Riwayat_divisi::create([
-                'id_pegawai' => $id,
                 'id_divisi' => $request->id_divisi,
-                'tgl_mulai' => $request->tgl_masuk,
+                'path' => $imgname
             ]);
+
+            if ($riwayat_jabatan == 0) {
+                Riwayat_jabatan::create([
+                    'id_pegawai' => $id,
+                    'id_jabatan' => $request->id_jabatan,
+                    'tgl_mulai' => $request->tgl_masuk,
+                ]);
+            }
+
+            if ($riwayat_divisi == 0) {
+                Riwayat_divisi::create([
+                    'id_pegawai' => $id,
+                    'id_divisi' => $request->id_divisi,
+                    'tgl_mulai' => $request->tgl_masuk,
+                ]);
+            }
+
+            $int = (int)$request->id_role;
+            $user->assignRole($int);
+
+            $user->tunjangan()->attach($request->tunjangan);
+            $user->potongan()->attach($request->potongan);
+
+            Alert::success('Success', 'Berhasil Input Data!');
+            return redirect('pegawai');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Alert::error('Gagal!', 'Data sudah ada atau tidak valid!');
+            return back()->withErrors($e->validator)->withInput();
+        } catch (\Throwable $th) {
+            Alert::error('Error!', 'Terjadi kesalahan saat menyimpan data!');
+            return back()->withInput();
         }
-
-        $int = (int)$request->id_role;
-
-        // Asign Role
-        $user->assignRole($int);
-
-        //Asign Tunjangan
-        $tunjangan = $request->tunjangan;
-        $user->tunjangan()->attach($tunjangan);
-
-        //Asign Potongan
-        $potongan = $request->potongan;
-        $user->potongan()->attach($potongan);
-
-        Alert::success('success', ' Berhasil Input Data !');
-        return redirect('pegawai');
     }
 
     /**

@@ -129,6 +129,7 @@
                                 <option value="Hadir"> Hadir </option>
                                 <option value="Cuti"> Cuti </option>
                                 <option value="Alpha"> Alpha </option>
+                                <option value="Izin"> Izin </option>
                             </select>
 
                             @if ($errors->has('ket'))
