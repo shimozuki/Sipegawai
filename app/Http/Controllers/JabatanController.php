@@ -53,23 +53,34 @@ class JabatanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validasi dasar
         $this->validate($request, [
             'nm_jabatan' => 'required',
             'gaji_pokok' => 'required',
         ]);
 
+        // Ubah nama jabatan ke lowercase untuk pengecekan dan penyimpanan
+        $nm_jabatan = strtolower($request->nm_jabatan);
+
+        // Cek apakah jabatan dengan nama lowercase sudah ada
+        $exists = Jabatan::whereRaw('LOWER(nm_jabatan) = ?', [$nm_jabatan])->exists();
+        if ($exists) {
+            Alert::error('Gagal', 'Nama jabatan sudah ada!');
+            return redirect()->back()->withInput();
+        }
+
+        // Proses angka gaji pokok
         $rupiah_string = $request->gaji_pokok;
         $jumlah_string = preg_replace("/[^0-9]/", "", $rupiah_string);
         $gaji_pokok = (int) $jumlah_string;
 
-
+        // Simpan data
         Jabatan::create([
-            'nm_jabatan' => $request->nm_jabatan,
+            'nm_jabatan' => $nm_jabatan, // sudah lowercase
             'gaji_pokok' => $gaji_pokok,
         ]);
 
-        Alert::success('success', ' Berhasil Input Data !');
+        Alert::success('Success', 'Berhasil Input Data!');
         return redirect('jabatan');
     }
 
