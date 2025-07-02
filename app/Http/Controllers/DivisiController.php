@@ -47,18 +47,28 @@ class DivisiController extends Controller
      */
     public function store(Request $request)
     {
-        //
         $this->validate($request, [
             'nm_divisi' => 'required',
         ]);
 
+        // Konversi ke lowercase
+        $nm_divisi = strtolower($request->nm_divisi);
+
+        // Cek apakah sudah ada divisi dengan nama yang sama (case-insensitive)
+        if (Divisi::whereRaw('LOWER(nm_divisi) = ?', [$nm_divisi])->exists()) {
+            Alert::error('error', 'Divisi sudah ada!');
+            return redirect()->back()->withInput();
+        }
+
+        // Simpan data
         Divisi::create([
-            'nm_divisi' => $request->nm_divisi
+            'nm_divisi' => $nm_divisi
         ]);
 
-        Alert::success('success', ' Berhasil Input Data !');
+        Alert::success('success', 'Berhasil Input Data!');
         return redirect('divisi');
     }
+
 
     /**
      * Display the specified resource.
