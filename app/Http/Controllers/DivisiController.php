@@ -107,21 +107,20 @@ class DivisiController extends Controller
      */
     public function update(Request $request, $data)
     {
-        //
         $id = Crypt::decryptString($data);
+        $divisi = Divisi::findOrFail($id);
 
         $this->validate($request, [
-            'nm_divisi' => 'required'
+            'nm_divisi' => 'required|unique:divisis,nm_divisi,' . $divisi->id,
         ]);
-
-        $divisi = Divisi::find($id);
 
         $divisi->nm_divisi = $request->nm_divisi;
         $divisi->save();
 
-        Alert::success('success', ' Berhasil Update Data !');
+        Alert::success('success', 'Berhasil Update Data!');
         return redirect('/divisi');
     }
+
 
     /**
      * Remove the specified resource from storage.
