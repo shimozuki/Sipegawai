@@ -45,6 +45,14 @@ class DivisiController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+
+    //  NOTE pak yth Rodi
+    // Apakah auto increment bisa mencegah input string duplikat?
+    // Tidak. Auto increment hanya berlaku untuk kolom angka 
+    // (biasanya ID) yang otomatis naik nilainya setiap kali data ditambahkan, seperti:
+    // id (auto increment): 1, 2, 3, 4, ...
+    // Tapi: Auto increment tidak mencegah string seperti nm_divisi = 'Keuangan' diinput dua kali.
+    // Untuk mencegah duplikat nama divisi, kamu wajib menambahkan validasi di Laravel seperti yang sudah kita lakukan, dan idealnya juga menambahkan unique constraint di database.
     public function store(Request $request)
     {
         $this->validate($request, [
