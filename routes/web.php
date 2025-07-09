@@ -26,6 +26,7 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\GajiController;
 use App\Http\Controllers\Hrd\HrdDashboardController;
+use App\Http\Controllers\kinerjaController;
 use App\Http\Controllers\ManajemenPerusahaanController;
 use App\Http\Controllers\ManajemenRoleMenuController;
 use App\Http\Controllers\PenilaianKinerjaController;
@@ -235,6 +236,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/penilaian/showAll', [PenilaianKinerjaController::class, 'showAll'])->name('penilaian.showAll');
     Route::resource('penilaian', PenilaianKinerjaController::class);
     Route::get('/penilaian/createData/{data}', [PenilaianKinerjaController::class, 'createData'])->name('penilaian.createData');
+
+    // routes/web.php atau routes/api.php
+    Route::get('/kinerja/{id_peg}/grafik', [kinerjaController::class, 'getGrafikKinerja']);
+    Route::get('/dashboard/kinerja-bulanan', [kinerjaController::class, 'getKinerjaPerBulan']);
 });
 
 Auth::routes();

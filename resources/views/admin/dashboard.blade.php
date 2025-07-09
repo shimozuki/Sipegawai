@@ -156,33 +156,59 @@
     </div>
 
     <div class="col-md-6">
-        <div class="panel">
-            <div class="panel-heading">
-                <h5 class="panel-title">Statistik Inputan Data </h5>
-                <div class="heading-elements">
-                    <form class="heading-form" method="post" action="{{ route('superAdmin.store') }}">
-                        @csrf
-                        <div class="form-group">
-                            <select class="select" name="month" onchange="this.form.submit();">
-                                @foreach ($months as $value => $key)
-                                    <option value="{{ $key }}" {{ $bulanIni == $key ? 'selected' : '' }}>
-                                        {{ $value }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="panel-body">
-                <div class="text-right">
-                    <canvas id="chartData"></canvas>
-                </div>
+    <!-- Pie Chart: Statistik Inputan Bulan Ini -->
+    <div class="panel">
+        <div class="panel-heading">
+            <h5 class="panel-title">Statistik Inputan Data</h5>
+            <div class="heading-elements">
+                <form class="heading-form" method="post" action="{{ route('superAdmin.store') }}">
+                    @csrf
+                    <div class="form-group">
+                        <select class="select" name="month" onchange="this.form.submit();">
+                            @foreach ($months as $value => $key)
+                                <option value="{{ $key }}" {{ $bulanIni == $key ? 'selected' : '' }}>
+                                    {{ $value }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
             </div>
         </div>
-        <!-- /bacis pie chart -->
+        <div class="panel-body">
+            <canvas id="chartData" height="140"></canvas>
+        </div>
     </div>
+
+    <!-- Bar Chart: Total Kinerja Pegawai Bulanan -->
+    <div class="panel panel-flat">
+        <div class="panel-heading">
+            <h5 class="panel-title">Total Kinerja Pegawai (Bulanan)</h5>
+        </div>
+        <div class="panel-body">
+            <canvas id="chartKinerjaBulanan" height="140"></canvas>
+        </div>
+    </div>
+
+    <!-- Bar Chart: Kinerja Pegawai per Bulan -->
+    <div class="panel panel-flat">
+        <div class="panel-heading">
+            <h5 class="panel-title">Kinerja Pegawai per Bulan</h5>
+            <div class="heading-elements">
+                <select id="pegawaiSelect" class="form-control" style="width:200px;">
+                    <option disabled selected>Pilih Pegawai</option>
+                    @foreach ($listPegawai as $peg)
+                        <option value="{{ $peg->id }}">{{ $peg->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="panel-body">
+            <canvas id="chartPerPegawai" height="140"></canvas>
+        </div>
+    </div>
+</div>
+
 
     <!-- Vertical form modal -->
     <div id="modal" class="modal fade" data-toggle="modal" data-backdrop="static">
@@ -305,42 +331,87 @@
 
 
 @section('custom_script')
+<script>
+    // Modal perusahaan jika belum ada data
+    if ({{ $perusahaan }} == 0) {
+        setTimeout(() => $("#modal").modal('show'), 100);
+    }
 
-    <script>
-        if ({{ $perusahaan }} == 0) {
-
-            setTimeout(function() {
-                $("#modal").modal('show');
-            }, 100);
-
-        }
-
-        var oilCanvas = document.getElementById("chartData");
-
-        Chart.defaults.global.defaultFontColor = 'black';
-        Chart.defaults.global.defaultFontSize = 13;
-
-        var inputData = {
-            labels: [
-                "Data Pegawai",
-                "Data Presensi",
-                "Data Cuti",
-            ],
+    // Grafik Pie - Statistik Inputan Bulan Ini
+    const chartData = document.getElementById("chartData").getContext('2d');
+    new Chart(chartData, {
+        type: 'pie',
+        data: {
+            labels: ["Data Pegawai", "Data Presensi", "Data Cuti"],
             datasets: [{
                 data: [{{ $pegawai_bulan }}, {{ $presensi_bulan }}, {{ $cuti_bulan }}],
-                backgroundColor: [
-                    "teal",
-                    "indigo",
-                    "navy",
-                ]
+                backgroundColor: ["teal", "indigo", "navy"]
             }]
-        };
+        },
+        options: {
+            responsive: true
+        }
+    });
 
-        var pieChart = new Chart(oilCanvas, {
-            type: 'pie',
-            data: inputData
+    // Grafik Bar - Total Kinerja Pegawai Bulanan
+    fetch('/dashboard/kinerja-bulanan?tahun={{ date('Y') }}')
+        .then(res => res.json())
+        .then(result => {
+            const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+            const hadir = Array(12).fill(0), cuti = Array(12).fill(0), alpha = Array(12).fill(0);
+
+            result.data.forEach(item => {
+                const i = item.bulan - 1;
+                hadir[i] = item.hadir;
+                cuti[i] = item.cuti;
+                alpha[i] = item.alpha;
+            });
+
+            const ctx = document.getElementById('chartKinerjaBulanan').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: bulan,
+                    datasets: [
+                        { label: 'Hadir', data: hadir, backgroundColor: 'green' },
+                        { label: 'Cuti', data: cuti, backgroundColor: 'orange' },
+                        { label: 'Alpha', data: alpha, backgroundColor: 'red' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
         });
 
-    </script>
+    // Grafik Bar - Kinerja per Pegawai
+    document.getElementById('pegawaiSelect').addEventListener('change', function () {
+        const idPeg = this.value;
+        fetch(`/kinerja/${idPeg}/grafik?tahun={{ date('Y') }}`)
+            .then(res => res.json())
+            .then(data => {
+                const ctx = document.getElementById('chartPerPegawai').getContext('2d');
+                if (window.chartPerPegawai) window.chartPerPegawai.destroy();
 
+                window.chartPerPegawai = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+                        datasets: [
+                            { label: 'Hadir', data: data.grafik.Hadir, backgroundColor: 'green' },
+                            { label: 'Cuti', data: data.grafik.Cuti, backgroundColor: 'orange' },
+                            { label: 'Alpha', data: data.grafik.Alpha, backgroundColor: 'red' },
+                            { label: 'Telat', data: data.grafik.Telat, backgroundColor: 'blue' },
+                            { label: 'Pulang Awal', data: data.grafik.PulangAwal, backgroundColor: 'purple' }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            });
+    });
+</script>
 @endsection
