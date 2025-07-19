@@ -357,20 +357,32 @@
     </li>
     @endcan
 
-    @if ($user->id_role == 3)
     <li>
         <a href="#"><i class="icon-calendar2"></i> <span>Kegiatan</span></a>
         <ul>
             <li class="{{ Route::is('kegiatan.index') ? 'active' : null }}">
                 <a href="{{ route('kegiatan.index') }}">List Kegiatan</a>
             </li>
+            @if ($user->id_role == 3)
             <li class="{{ Route::is('kegiatan.create') ? 'active' : null }}">
                 <a href="{{ route('kegiatan.create') }}">Tambah Kegiatan</a>
             </li>
+            @endif
         </ul>
     </li>
-    @endif
-
+    <li>
+        <a href="#"><i class="icon-clipboard3"></i> <span>Pelayanan</span></a>
+        <ul>
+            <li class="{{ Route::is('pelayanan.index') ? 'active' : null }}">
+                <a href="{{ route('pelayanan.index') }}">List Pelayanan</a>
+            </li>
+            @if ($user->id_role == 3)
+            <li class="{{ Route::is('pelayanan.create') ? 'active' : null }}">
+                <a href="{{ route('pelayanan.create') }}">Tambah Pelayanan</a>
+            </li>
+            @endif
+        </ul>
+    </li>
 
 </ul>
 

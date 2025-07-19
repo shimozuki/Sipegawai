@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kegiatan;
+use App\Models\Pegawai;
 use Illuminate\Http\Request;
 
 class KegiatanController extends Controller
@@ -12,15 +13,27 @@ class KegiatanController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $pegawai_id = auth()->user()->id;
+        $user = auth()->user();
+        $query = Kegiatan::query();
 
-        $kegiatan = Kegiatan::where('pegawai_id', $pegawai_id)
-            ->latest()
-            ->paginate(10);
+        // Jika user adalah admin (role 1), bisa filter semua pegawai
+        if ($user->id_role == 1) {
+            if ($request->filled('pegawai_id')) {
+                $query->where('pegawai_id', $request->pegawai_id);
+            }
 
-        return view('kegiatan.index', compact('kegiatan'));
+            $daftarPegawai = Pegawai::orderBy('nama')->get();
+        } else {
+            // Jika bukan admin (misal pegawai), hanya tampilkan kegiatan miliknya
+            $query->where('pegawai_id', $user->id);
+            $daftarPegawai = collect(); // kosong karena tidak ditampilkan di view
+        }
+
+        $kegiatan = $query->latest()->paginate(10)->withQueryString();
+
+        return view('kegiatan.index', compact('kegiatan', 'user', 'daftarPegawai'));
     }
 
     /**

@@ -31,6 +31,7 @@ use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\kinerjaController;
 use App\Http\Controllers\ManajemenPerusahaanController;
 use App\Http\Controllers\ManajemenRoleMenuController;
+use App\Http\Controllers\PelayananController;
 use App\Http\Controllers\PenilaianKinerjaController;
 use App\Http\Controllers\PotonganController;
 use App\Http\Controllers\ResetPasswordController;
@@ -245,6 +246,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::resource('kegiatan', KegiatanController::class);
     Route::resource('inventaris', InventarisController::class);
+    Route::resource('pelayanan', PelayananController::class);
 });
 
 Auth::routes();
