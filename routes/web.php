@@ -26,6 +26,8 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\GajiController;
 use App\Http\Controllers\Hrd\HrdDashboardController;
+use App\Http\Controllers\InventarisController;
+use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\kinerjaController;
 use App\Http\Controllers\ManajemenPerusahaanController;
 use App\Http\Controllers\ManajemenRoleMenuController;
@@ -240,6 +242,9 @@ Route::group(['middleware' => ['auth']], function () {
     // routes/web.php atau routes/api.php
     Route::get('/kinerja/{id_peg}/grafik', [kinerjaController::class, 'getGrafikKinerja']);
     Route::get('/dashboard/kinerja-bulanan', [kinerjaController::class, 'getKinerjaPerBulan']);
+
+    Route::resource('kegiatan', KegiatanController::class);
+    Route::resource('inventaris', InventarisController::class);
 });
 
 Auth::routes();
