@@ -250,6 +250,20 @@
     </li>
     @endcan
 
+    @if ($user->id_role == 1)
+    <li>
+        <a href="#"><i class="icon-box"></i> <span>Inventaris</span></a>
+        <ul>
+            <li class="{{ Route::is('inventaris.index') ? 'active' : null }}">
+                <a href="{{ route('inventaris.index') }}">List Inventaris</a>
+            </li>
+            <li class="{{ Route::is('inventaris.create') ? 'active' : null }}">
+                <a href="{{ route('inventaris.create') }}">Tambah Inventaris</a>
+            </li>
+        </ul>
+    </li>
+    @endif
+
     @if (!$role_hak_akses->isEmpty())
     <li class="navigation-header"><span>Main Menu</span> <i class="icon-menu"></i></li>
     @endif
@@ -343,7 +357,23 @@
     </li>
     @endcan
 
+    @if ($user->id_role == 3)
+    <li>
+        <a href="#"><i class="icon-calendar2"></i> <span>Kegiatan</span></a>
+        <ul>
+            <li class="{{ Route::is('kegiatan.index') ? 'active' : null }}">
+                <a href="{{ route('kegiatan.index') }}">List Kegiatan</a>
+            </li>
+            <li class="{{ Route::is('kegiatan.create') ? 'active' : null }}">
+                <a href="{{ route('kegiatan.create') }}">Tambah Kegiatan</a>
+            </li>
+        </ul>
+    </li>
+    @endif
+
+
 </ul>
+
 
 {{-- <div class="admin" @if ($user->id_role != 1) {{ 'hidden' }} @endif>
 <ul class="navigation navigation-main navigation-accordion">
@@ -411,6 +441,8 @@
         </ul>
     </li>
 
+
+
 </ul>
 </div>
 
@@ -461,6 +493,7 @@
             </ul>
         </li>
         <!-- /hrd -->
+
 
     </ul>
 </div> --}}
