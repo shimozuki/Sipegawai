@@ -242,4 +242,25 @@ class PenilaianKinerjaController extends Controller
     {
         //
     }
+
+    private function calculateKPI($absensi, $kegiatan, $disiplin, $pelayanan)
+    {
+        // Bobot tiap indikator
+        $bobot = [
+            'absensi' => 0.25,
+            'kegiatan' => 0.25,
+            'disiplin' => 0.25,
+            'pelayanan' => 0.25,
+        ];
+
+        // Hitung nilai KPI (0-100)
+        $nilaiKPI = (
+            ($absensi * $bobot['absensi']) +
+            ($kegiatan * $bobot['kegiatan']) +
+            ($disiplin * $bobot['disiplin']) +
+            ($pelayanan * $bobot['pelayanan'])
+        );
+
+        return round($nilaiKPI, 2); // Misal hasil: 82.50
+    }
 }
